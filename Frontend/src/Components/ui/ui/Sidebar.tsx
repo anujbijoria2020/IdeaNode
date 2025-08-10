@@ -16,7 +16,7 @@ export const Sidebar=({onfilterChange}:{onfilterChange:(type:string)=>void})=>{
                 <div className="pr-2 text-purple-600">
                     <LogoIcon/>
                 </div>
-                Linkura
+                IdeaNode
             </div>
          <div className="pt-4 ">
  <SidebarItem text={"Twitter"} icon={<TwitterIcon/>} onClick={()=>onfilterChange("Twitter")}/>
