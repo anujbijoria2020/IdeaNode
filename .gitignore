@@ -1,0 +1,13 @@
+# Node.js
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+
+Frontend/dist/
+Frontend/node_modules/
+
