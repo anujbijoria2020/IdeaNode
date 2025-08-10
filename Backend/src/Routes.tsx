@@ -3,7 +3,7 @@ import type { Request,Response } from 'express';
 import { UserMiddleWare } from './MiddleWare.js';
 import { Content,Link, User } from './db.js';
 import crypto from 'crypto';
-import {JWT_TOKEN, PORT} from './index.js';
+import {JWT_TOKEN, port} from './index.js';
 import { SignupSchema } from './validators.js';
 import bcrypt from 'bcryptjs';
 import  jwt  from 'jsonwebtoken';
@@ -199,7 +199,7 @@ route.post("/api/v1/content/share", UserMiddleWare, async (req, res) => {
     
     return res.status(200).json({
       message: "link created sucessfully",
-      link: `https://localhost:${PORT}/api/v1/content/share/${hash}`,
+      link: `https://localhost:${port}/api/v1/content/share/${hash}`,
       hash: hash,
       success: true,
     });
