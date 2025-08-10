@@ -145,7 +145,7 @@ const navigate = useNavigate();
 }
 
 export function signOut() {
-  const navigate= useNavigate();
+
   localStorage.removeItem("token");
-  navigate("/signin");
+ window.location.href = "/signin"
 }

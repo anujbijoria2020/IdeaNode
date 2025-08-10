@@ -107,7 +107,7 @@ export function DashBoard() {
         <div className="  h-full flex justify-center mt-6 text-purple-500">
         <div>
            <div className="text-2xl"> Content Not Available!! </div>
-           <div>
+           <div className="p-4 m-2 flex justify-center items-center">
               <Button
               variant={"light"}
               Loading={false}
