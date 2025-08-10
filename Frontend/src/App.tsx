@@ -5,7 +5,7 @@ import { SharedContent } from "./pages/SharedContent";
 import { NotFound } from "./pages/NotFound";
 import { ProtectedRoute } from "./pages/Protected";
 
-export const FrontEndUrl = "http://localhost:5173"
+export const FrontEndUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 
 export default function App() {
