@@ -1,5 +1,5 @@
 import { SignIn, Signup } from "./pages/Auth";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route,Navigate} from "react-router-dom";
 import { DashBoard } from "./pages/dashboard";
 import { SharedContent } from "./pages/SharedContent";
 import { NotFound } from "./pages/NotFound";
@@ -10,7 +10,7 @@ export const FrontEndUrl = import.meta.env.VITE_FRONTEND_URL || "http://localhos
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/signup" replace />} />
         <Route path="/signup" element={<Signup />} />
@@ -21,6 +21,6 @@ export default function App() {
         <Route path="/share/:hash" element={<SharedContent/>}/>
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
