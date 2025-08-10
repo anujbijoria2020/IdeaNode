@@ -145,8 +145,7 @@ const navigate = useNavigate();
 }
 
 export function signOut() {
+  const navigate= useNavigate();
   localStorage.removeItem("token");
-  window.location.reload();
-
-  
+  navigate("/signin");
 }
