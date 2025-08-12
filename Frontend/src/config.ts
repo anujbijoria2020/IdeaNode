@@ -1,1 +1,1 @@
-export const BackendUrl:string = "http://localhost:3000";
+export const BackendUrl:string = import.meta.env.VITE_BACKEND_URL||"http://localhost:3000";
