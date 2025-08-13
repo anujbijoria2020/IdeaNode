@@ -4,7 +4,7 @@ import { Input } from "./InputComponent";
 import axios from "axios";
 import { BackendUrl } from "../../../config";
 
-export type ContentType = "twitter" | "youtube";
+export type ContentType = "youtube" | "twitter" | "instagram" | "note";
 
 export function CreateContent({
   open,
@@ -13,31 +13,36 @@ export function CreateContent({
   open: boolean;
   onClose: () => void;
 }) {
-
   const [type, setType] = useState<ContentType>("youtube");
   const titleRef = useRef<HTMLInputElement>(null);
   const linkRef = useRef<HTMLInputElement>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
   const tagsRef = useRef<HTMLInputElement>(null);
 
   const [busy, setBusy] = useState(false);
 
   async function onCreate() {
     const title = titleRef.current?.value?.trim();
-    const link = linkRef.current?.value?.trim();
-    const tags = tagsRef.current?.value?.trim().split(",");
-    console.log(tags);
+    const tags = tagsRef.current?.value?.trim().split(",") || [];
+    let content = linkRef.current?.value?.trim();
 
-    if (!title || !link) return;
+    // For notes, use the textarea value instead of link
+    if (type === "note") {
+      content = textRef.current?.value?.trim();
+    }
+
+    if (!title || !content) return;
 
     try {
       setBusy(true);
-      await axios.post(`${BackendUrl}/api/v1/content`,
-        { title, link, type ,tags},
+      await axios.post(
+        `${BackendUrl}/api/v1/content`,
+        { title, link: content, type, tags },
         { headers: { token: localStorage.getItem("token") || "" } }
       );
       onClose();
     } catch (e) {
-      console.log(e);
+      console.error(e);
     } finally {
       setBusy(false);
     }
@@ -58,33 +63,39 @@ export function CreateContent({
 
         <div className="grid gap-3">
           <Input ref={titleRef} placeholder="Title..." type="text" />
-          <Input ref={linkRef} placeholder="Paste link..." type="text" />
-          <Input ref={tagsRef} placeholder="tags here separated by comma (optional)" type="text" />
 
+          {/* Show link input for URLs */}
+          {type !== "note" && <Input ref={linkRef} placeholder="Paste link..." type="text" />}
+
+          {/* Show textarea for notes */}
+          {type === "note" && (
+            <textarea
+              ref={textRef}
+              placeholder="Write your note here..."
+              className="border rounded p-2 w-full h-32"
+            />
+          )}
+
+          <Input ref={tagsRef} placeholder="Tags (comma separated)" type="text" />
+
+          {/* Type selection buttons */}
           <div className="flex flex-wrap gap-2">
-            <button
-              className={`px-3 py-2 rounded border ${
-                type === "youtube"
-                  ? "bg-purple-600 text-white border-purple-600"
-                  : "bg-white text-purple-700 border-purple-600"
-              }`}
-              onClick={() => setType("youtube")}
-            >
-              YouTube
-            </button>
-            
-            <button
-              className={`px-3 py-2 rounded border ${
-                type === "twitter"
-                  ? "bg-purple-600 text-white border-purple-600"
-                  : "bg-white text-purple-700 border-purple-600"
-            }`}
-              onClick={() => setType("twitter")}
-            >
-              Twitter
-            </button>
+            {(["youtube", "twitter", "instagram", "note"] as ContentType[]).map((t) => (
+              <button
+                key={t}
+                className={`px-3 py-2 rounded border ${
+                  type === t
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-purple-700 border-purple-600"
+                }`}
+                onClick={() => setType(t)}
+              >
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
           </div>
 
+          {/* Action buttons */}
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="ghost" onClick={onClose}>
               Cancel

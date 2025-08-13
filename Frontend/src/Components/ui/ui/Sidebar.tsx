@@ -5,6 +5,8 @@ import { TwitterIcon } from "../icons/Twitter";
 import { YouTubeIcon } from "../icons/Youtube";
 import { Button } from "./Button";
 import { SidebarItem } from "./SidebarItem";
+import { NoteIcon } from "../icons/Note";
+import { InstagramIcon } from "../icons/Instagram";
 
 const isSharedContent =
   typeof window !== "undefined" && location.pathname.includes("/share/");
@@ -19,6 +21,8 @@ export function Sidebar({
   const menuItems = [
     { text: "Twitter", icon: <TwitterIcon />, type: "Twitter" },
     { text: "Youtube", icon: <YouTubeIcon />, type: "Youtube" },
+    { text: "Instagram", icon: <InstagramIcon />, type: "Instagram" },
+    { text: "Note", icon: <NoteIcon />, type: "Note" },
   ];
 
   const handleItemClick = (type: string) => {

@@ -3,12 +3,12 @@ import { DeleteIcon } from "../icons/DeleteIcon";
 import { BackendUrl } from "../../../config";
 import type React from "react";
 import axios from "axios";
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 
 interface CardProps {
   title: string;
   link: string;
-  type: "twitter" | "youtube";
+  type: "twitter" | "youtube" | "instagram" | "note";
   id: string;
   setToast?: React.Dispatch<
     React.SetStateAction<{ message: string; success: boolean } | null>
@@ -20,14 +20,20 @@ const isSharedContent = location.pathname.includes("/share/");
 function getYouTubeEmbedUrl(url: string): string {
   try {
     const u = new URL(url);
-    if (u.hostname === "youtu.be")
-      return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
-    if (u.searchParams.has("v"))
-      return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
-    if (u.pathname.startsWith("/shorts/"))
-      return `https://www.youtube.com/embed/${u.pathname.split("/")[2]}`;
+    if (u.hostname === "youtu.be") return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
+    if (u.searchParams.has("v")) return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
+    if (u.pathname.startsWith("/shorts/")) return `https://www.youtube.com/embed/${u.pathname.split("/")[2]}`;
     if (u.pathname.startsWith("/embed/")) return url;
     return url;
+  } catch {
+    return url;
+  }
+}
+
+function getInstagramEmbedUrl(url: string) {
+  try {
+    // Instagram oEmbed API format
+    return `https://www.instagram.com/p/${url.split("/p/")[1].split("/")[0]}/embed`;
   } catch {
     return url;
   }
@@ -56,6 +62,7 @@ export const Card = ({ title, link, type, id, setToast }: CardProps) => {
         message: response?.data?.message ?? "Deleted!",
         success: true,
       });
+
       window.location.reload();
     } catch (error) {
       console.log(error);
@@ -123,8 +130,26 @@ export const Card = ({ title, link, type, id, setToast }: CardProps) => {
             </blockquote>
           </>
         )}
+
+        {type === "instagram" && (
+          <div className="w-full aspect-square">
+            <iframe
+              className="w-full h-full rounded"
+              src={getInstagramEmbedUrl(link)}
+              title="Instagram embed"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+        )}
+
+        {type === "note" && (
+          <div className="bg-gray-50 border rounded p-3 whitespace-pre-wrap break-words">
+            {link}
+          </div>
+        )}
       </div>
     </div>
   );
 };
-
