@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { PlusIcon, ShareIcon } from "../Components/ui/icons/Icons";
 import { Button } from "../Components/ui/ui/Button";
 import { Card } from "../Components/ui/ui/Card";
-import {  CreateContent } from "../Components/ui/ui/CreateContent";
+import { CreateContent } from "../Components/ui/ui/CreateContent";
 import type { ContentType } from "../Components/ui/ui/CreateContent";
 import { Sidebar } from "../Components/ui/ui/Sidebar";
 import { useContent } from "../hooks/useContent";
@@ -19,10 +19,13 @@ export function DashBoard() {
   const { contents, refresh } = useContent();
   const [toast, setToast] = useState<{ message: string; success: boolean } | null>(null);
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Small timeout to avoid flicker if loading is very fast
+    setTimeout(() => setLoading(false), 500);
   }, [modalOpen]);
 
   const filteredContents =
@@ -43,7 +46,6 @@ export function DashBoard() {
 
       const hash = response?.data?.hash;
       const shareLink = `${FrontEndUrl}/share/${hash}`;
-
       await navigator.clipboard.writeText(shareLink);
       setToast({ message: "Link Copied Successfully!!", success: true });
     } catch (err) {
@@ -56,10 +58,9 @@ export function DashBoard() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Sidebar (desktop) + Topbar (mobile) */}
       <Sidebar onfilterChange={setSelectedType} />
 
-      {/* Top action bar (desktop) */}
+      {/* Desktop Topbar */}
       <div className="hidden md:flex fixed top-0 left-76 right-0 z-30 h-16 bg-white border-b border-gray-200 items-center justify-end px-4">
         <div className="flex gap-3">
           <Button
@@ -79,7 +80,7 @@ export function DashBoard() {
         </div>
       </div>
 
-      {/* Mobile actions under topbar */}
+      {/* Mobile Topbar */}
       <div className="md:hidden px-4 pt-2 sticky top-[56px] bg-white z-30 border-b border-gray-100">
         <div className="grid grid-cols-2 gap-3 pb-2">
           <Button
@@ -99,12 +100,22 @@ export function DashBoard() {
         </div>
       </div>
 
-      {/* Main content */}
-      <main className="px-4 md:pl-80 pt-20 md:pt-20">
+      {/* Main */}
+      <main className="px-4 md:pl-80 pt-20">
         <CreateContent open={modalOpen} onClose={() => setModalOpen(false)} />
 
         <div className="mt-4">
-          {filteredContents.length === 0 ? (
+          {loading ? (
+            // Skeleton Loader
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, idx) => (
+                <div
+                  key={idx}
+                  className="h-60 bg-gray-200 animate-pulse rounded-md"
+                ></div>
+              ))}
+            </div>
+          ) : filteredContents.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-purple-500 py-16">
               <div className="text-2xl mb-4">Content Not Available!!</div>
               <Button
@@ -116,18 +127,18 @@ export function DashBoard() {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredContents.map((content: any) => (
-                <Card
-                  key={content._id as string}
-                  type={content.type as ContentType}
-                  link={content.link as string}
-                  title={content.title as string}
-                  id={content._id as string}
-                  setToast={setToast}
-                />
-              ))}
-            </div>
+     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 grid-flow-row-dense">
+  {filteredContents.map((content: any) => (
+    <Card
+      key={content._id as string}
+      type={content.type as ContentType}
+      link={content.link as string}
+      title={content.title as string}
+      id={content._id as string}
+      setToast={setToast}
+    />
+  ))}
+</div>
           )}
         </div>
       </main>

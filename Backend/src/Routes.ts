@@ -1,16 +1,16 @@
-import express, { Router } from 'express';
-import type { Request,Response } from 'express';
-import { UserMiddleWare } from './MiddleWare.js';
-import { Content,Link, User } from './db.js';
-import crypto from 'crypto';
-import {JWT_TOKEN, port} from './index.js';
-import { SignupSchema } from './validators.js';
-import bcrypt from 'bcryptjs';
-import  jwt  from 'jsonwebtoken';
+import express, { response, Router } from "express";
+import type { Request, Response } from "express";
+import { UserMiddleWare } from "./MiddleWare.js";
+import { Content, Link, Tag, User } from "./db.js";
+import crypto from "crypto";
+import { JWT_TOKEN, port } from "./index.js";
+import { SignupSchema } from "./validators.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
- const route: Router = express.Router();
+const route: Router = express.Router();
 
-route.post("/api/v1/signup", async (req:Request, res:Response) => {
+route.post("/api/v1/signup", async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   try {
@@ -37,7 +37,7 @@ route.post("/api/v1/signup", async (req:Request, res:Response) => {
     return res.status(200).send({
       message: "user created successfully",
     });
-  } catch (error:any) {
+  } catch (error: any) {
     if (error) {
       res.status(400).send({
         message: `signin error -${error.message}`,
@@ -52,7 +52,7 @@ route.post("/api/v1/signup", async (req:Request, res:Response) => {
   }
 });
 
-route.post("/api/v1/signin", async (req:Request, res:Response) => {
+route.post("/api/v1/signin", async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   try {
@@ -97,62 +97,80 @@ route.post("/api/v1/signin", async (req:Request, res:Response) => {
   }
 });
 
-route.post("/api/v1/signout", UserMiddleWare, async (req:Request, res:Response) => {
-  console.log("after middleware");
-});
+route.post("/api/v1/signout",
+  UserMiddleWare,
+  async (req: Request, res: Response) => {
+    console.log("after middleware");
+  }
+);
 
 route.post("/api/v1/content", UserMiddleWare, async (req, res) => {
-  const { link, title, type } = req.body;
-  const userId = (req as any).userId;
-  const username = await User.findOne({ _id: userId });
-
   try {
-    const response = await Content.create({
+    const { link, title, type, tags = [] } = req.body;
+    const userId = (req as any).userId;
+
+    console.log("Tags received:", tags);
+
+   
+    const tagsArray = await Promise.all(
+      tags.map(async (tag: any) => {
+        if (typeof tag === "object" && tag._id) return tag._id;
+        
+        let foundTag = await Tag.findOne({ title: tag.trim() });
+        if (!foundTag) {
+          foundTag = await Tag.create({ title: tag.trim() });
+        }
+        return foundTag._id;
+      })
+    );
+
+    const user = await User.findById(userId).select("username");
+
+    const content = await Content.create({
       link,
       title,
       type,
+      tags: tagsArray,
       userId,
     });
 
     res.status(200).send({
-      message: "Content Created SuccessFully",
+      message: "Content Created Successfully",
       success: true,
-      Data: `link-${response.link}/ntitle-${response.title}/ntype-${response.type}/n Created By-${username?.username}`,
+      Data: `link-${content.link}\ntitle-${content.title}\ntype-${content.type}\nCreated By-${user?.username}`,
     });
-  } catch (error) {
-    if (error) {
-      res.status(400).send({
-        message: `Error while adding Content - ${error}`,
-        success: false,
-      });
-    } else {
-      res.status(200).send({
-        message: "Internal Server Error",
-        success: false,
-      });
-    }
-  }
-});
-
-route.get("/api/v1/content", UserMiddleWare, async (req:Request, res:Response) => {
-  const userId = (req as any).userId;
-  try {
-    const contents = await Content.find({ userId }).populate(
-      "userId",
-      "username"
-    );
-    return res.status(200).send({
-      message: "Content Fetched SuccessFully",
-      Contents: contents,
-      success: true,
-    });
-  } catch (error) {
+  } catch (error: any) {
     res.status(400).send({
-      message: "contents not founded",
+      message: `Error while adding Content - ${error.message || error}`,
       success: false,
     });
   }
 });
+
+
+route.get(
+  "/api/v1/content",
+  UserMiddleWare,
+  async (req: Request, res: Response) => {
+    const userId = (req as any).userId;
+    try {
+      const contents = await Content.find({ userId }).populate(
+        "userId",
+        "username"
+      );
+      return res.status(200).send({
+        message: "Content Fetched SuccessFully",
+        Contents: contents,
+        success: true,
+      });
+    } catch (error) {
+      res.status(400).send({
+        message: "contents not founded",
+        success: false,
+      });
+    }
+  }
+);
 
 route.delete("/api/v1/content", UserMiddleWare, async (req, res) => {
   const contentId = req.body.contentId;
@@ -180,36 +198,35 @@ route.post("/api/v1/content/share", UserMiddleWare, async (req, res) => {
   const userId = (req as any).userId;
   const share = req.body.share;
   try {
-  if(share){
-    const existingLink = await Link.findOne({
-      userId:userId
-    })
-    if(existingLink){
-      return res.status(200).json({
-        message:"link already exists",
-        hash:existingLink.hash,
-      })
-    }
+    if (share) {
+      const existingLink = await Link.findOne({
+        userId: userId,
+      });
+      if (existingLink) {
+        return res.status(200).json({
+          message: "link already exists",
+          hash: existingLink.hash,
+        });
+      }
       const hash: string = crypto.randomBytes(15).toString("hex");
 
-    const newLink = await Link.create({
-      userId,
-      hash
-    });
-    
-    return res.status(200).json({
-      message: "link created sucessfully",
-      link: `https://localhost:${port}/api/v1/content/share/${hash}`,
-      hash: hash,
-      success: true,
-    });
-  }
-  else{
-    await Link.deleteOne({userId});
-    res.status(411).json({
-      message:"link access set to FALSE!!"
-    })
-  }
+      const newLink = await Link.create({
+        userId,
+        hash,
+      });
+
+      return res.status(200).json({
+        message: "link created sucessfully",
+        link: `https://localhost:${port}/api/v1/content/share/${hash}`,
+        hash: hash,
+        success: true,
+      });
+    } else {
+      await Link.deleteOne({ userId });
+      res.status(411).json({
+        message: "link access set to FALSE!!",
+      });
+    }
   } catch (error) {
     return res.status(400).send({
       message: `error=${error}`,
@@ -219,10 +236,10 @@ route.post("/api/v1/content/share", UserMiddleWare, async (req, res) => {
 });
 
 route.get("/api/v1/content/share/:hash", async (req, res) => {
-  try { 
+  try {
     const { hash } = req.params;
 
-    const link = await Link.findOne({ hash }).populate("userId","username");
+    const link = await Link.findOne({ hash }).populate("userId", "username");
 
     if (!link) {
       return res.status(411).json({
@@ -234,17 +251,17 @@ route.get("/api/v1/content/share/:hash", async (req, res) => {
     console.log(link);
     console.log(link.userId);
 
-    const ContentOfUser = await Content.find({ userId: link.userId});
+    const ContentOfUser = await Content.find({ userId: link.userId });
 
-   const user:any = await User.findOne({_id:link.userId});
+    const user: any = await User.findOne({ _id: link.userId });
 
-   console.log(user); 
+    console.log(user);
 
-   if(!user){
-    return res.status(411).json({
-      message:"user Not Found ,error should ideally  not hrouteen"
-    })
-   }
+    if (!user) {
+      return res.status(411).json({
+        message: "user Not Found ,error should ideally  not hrouteen",
+      });
+    }
 
     return res.status(200).json({
       message: "Link Retrieved SuccessFully",
@@ -259,6 +276,5 @@ route.get("/api/v1/content/share/:hash", async (req, res) => {
     });
   }
 });
- 
 
 export default route;

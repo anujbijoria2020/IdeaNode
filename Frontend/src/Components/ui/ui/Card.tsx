@@ -3,6 +3,7 @@ import { DeleteIcon } from "../icons/DeleteIcon";
 import { BackendUrl } from "../../../config";
 import type React from "react";
 import axios from "axios";
+import { useEffect,useState } from "react";
 
 interface CardProps {
   title: string;
@@ -14,24 +15,18 @@ interface CardProps {
   >;
 }
 
-const isSharedContent =location.pathname.includes("/share/");
+const isSharedContent = location.pathname.includes("/share/");
 
 function getYouTubeEmbedUrl(url: string): string {
   try {
     const u = new URL(url);
-
-    // youtu.be/<id>
-    if (u.hostname === "youtu.be") return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
-
-    // watch?v=<id>
-    if (u.searchParams.has("v")) return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
-
-    // shorts/<id>
-    if (u.pathname.startsWith("/shorts/")) return `https://www.youtube.com/embed/${u.pathname.split("/")[2]}`;
-
-    // already embed
+    if (u.hostname === "youtu.be")
+      return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
+    if (u.searchParams.has("v"))
+      return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
+    if (u.pathname.startsWith("/shorts/"))
+      return `https://www.youtube.com/embed/${u.pathname.split("/")[2]}`;
     if (u.pathname.startsWith("/embed/")) return url;
-
     return url;
   } catch {
     return url;
@@ -39,35 +34,40 @@ function getYouTubeEmbedUrl(url: string): string {
 }
 
 export const Card = ({ title, link, type, id, setToast }: CardProps) => {
+  const [tweetLoading, setTweetLoading] = useState(type === "twitter");
+
+  useEffect(() => {
+    if (type === "twitter" && (window as any).twttr?.widgets) {
+      (window as any).twttr.widgets.load();
+      (window as any).twttr.events.bind("rendered", () => {
+        setTweetLoading(false);
+      });
+    }
+  }, [type, link]);
 
   async function handleDeleteContent(contentId: string) {
-
     try {
-
       const response = await axios.delete(`${BackendUrl}/api/v1/content`, {
-
-        headers: { 
-          token: localStorage.getItem("token") || "" },
+        headers: { token: localStorage.getItem("token") || "" },
         data: { contentId },
       });
 
-      setToast?.({ message: response?.data?.message ?? "Deleted!", success: true });
+      setToast?.({
+        message: response?.data?.message ?? "Deleted!",
+        success: true,
+      });
       window.location.reload();
-
     } catch (error) {
-
       console.log(error);
       setToast?.({ message: "Can't Delete!", success: false });
-
-    } 
-    finally {
-      
+    } finally {
       setTimeout(() => setToast?.(() => null), 3000);
     }
   }
 
   return (
-    <div className="bg-white rounded-md p-4 w-full sm:w-72 lg:w-80 border border-gray-200 m-2 shadow-md">
+    <div className="bg-white rounded-md p-4 border border-gray-200 shadow-md w-full">
+      {/* Header */}
       <div className="flex justify-between gap-2">
         <div className="flex items-center gap-2 text-slate-800">
           <span className="text-gray-500">
@@ -85,7 +85,6 @@ export const Card = ({ title, link, type, id, setToast }: CardProps) => {
               onClick={() => handleDeleteContent(id)}
               aria-label="Delete"
               title="Delete"
-          
             >
               <DeleteIcon />
             </button>
@@ -93,6 +92,7 @@ export const Card = ({ title, link, type, id, setToast }: CardProps) => {
         </div>
       </div>
 
+      {/* Content */}
       <div className="pt-4">
         {type === "youtube" && (
           <div className="w-full aspect-video">
@@ -108,11 +108,23 @@ export const Card = ({ title, link, type, id, setToast }: CardProps) => {
         )}
 
         {type === "twitter" && (
-          <blockquote className="twitter-tweet">
-            <a href={link.replace("x.com", "twitter.com")}></a>
-          </blockquote>
+          <>
+            {tweetLoading && (
+              <div className="flex justify-center py-4 text-gray-500 text-sm">
+                Loading tweet...
+              </div>
+            )}
+            <blockquote
+              className="twitter-tweet m-0"
+              data-width="100%"
+              style={{ margin: 0, display: tweetLoading ? "none" : "block" }}
+            >
+              <a href={link.replace("x.com", "twitter.com")}></a>
+            </blockquote>
+          </>
         )}
       </div>
     </div>
   );
 };
+

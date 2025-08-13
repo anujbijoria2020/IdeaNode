@@ -17,11 +17,15 @@ export function CreateContent({
   const [type, setType] = useState<ContentType>("youtube");
   const titleRef = useRef<HTMLInputElement>(null);
   const linkRef = useRef<HTMLInputElement>(null);
+  const tagsRef = useRef<HTMLInputElement>(null);
+
   const [busy, setBusy] = useState(false);
 
   async function onCreate() {
     const title = titleRef.current?.value?.trim();
     const link = linkRef.current?.value?.trim();
+    const tags = tagsRef.current?.value?.trim().split(",");
+    console.log(tags);
 
     if (!title || !link) return;
 
@@ -29,7 +33,7 @@ export function CreateContent({
       setBusy(true);
       await axios.post(
         `${BackendUrl}/api/v1/content`,
-        { title, link, type },
+        { title, link, type ,tags},
         { headers: { token: localStorage.getItem("token") || "" } }
       );
       onClose();
@@ -56,6 +60,7 @@ export function CreateContent({
         <div className="grid gap-3">
           <Input ref={titleRef} placeholder="Title..." type="text" />
           <Input ref={linkRef} placeholder="Paste link..." type="text" />
+          <Input ref={tagsRef} placeholder="tags here separated by comma (optional)" type="text" />
 
           <div className="flex flex-wrap gap-2">
             <button
