@@ -5,9 +5,6 @@ import { BackendUrl } from "../config";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-interface SignInResponse {
-  token: string;
-}
 
 export function Signup() {
   const usernameRef = useRef<HTMLInputElement>(null);
@@ -106,16 +103,17 @@ export function SignIn() {
     setLoading(true);
 
     try {
-      const response = await axios.post<SignInResponse>(
+      const response = await axios.post(
         `${BackendUrl}/api/v1/signin`,
         { username, password }
       );
       const token = response?.data?.token;
       localStorage.setItem("token", token);
+
       navigate("/dashboard");
     } catch (err: any) {
-      setError("SignIn failed! Try again.");
-      console.log(err.response?.data?.message )
+      setError(err.response?.data?.message||"SignIn failed! Try again.");
+      console.log(err.response?.data?.message)
     } finally {
       setLoading(false);
     }
