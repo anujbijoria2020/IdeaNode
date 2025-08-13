@@ -14,6 +14,37 @@ interface CardProps {
 
 const isSharedContent = location.pathname.includes("/share/");
 
+function getYouTubeEmbedUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url);
+
+    // Short URL : youtu.be/VIDEO_ID
+    if (parsedUrl.hostname === "youtu.be") {
+      return `https://www.youtube.com/embed/${parsedUrl.pathname.slice(1)}`;
+    }
+
+    // watch URL: youtube.com/watch?v=VIDEO_ID
+    if (parsedUrl.searchParams.has("v")) {
+      return `https://www.youtube.com/embed/${parsedUrl.searchParams.get("v")}`;
+    }
+
+    // Shorts URL: youtube.com/shorts/VIDEO_ID
+    if (parsedUrl.pathname.startsWith("/shorts/")) {
+      return `https://www.youtube.com/embed/${parsedUrl.pathname.split("/")[2]}`;
+    }
+
+    //embed link
+    if (parsedUrl.pathname.startsWith("/embed/")) {
+      return url;
+    }
+
+    return url; 
+  } catch {
+    return url; // invalid URL
+  }
+}
+
+
 export const Card = ({ title, link, type,id,setToast }: CardProps) => {
 
   async function handleDeleteContent(id:string) {
@@ -68,7 +99,7 @@ export const Card = ({ title, link, type,id,setToast }: CardProps) => {
           {type === "youtube" && (
             <iframe
               className="w-full"
-              src={link.replace("watch","embed").replace("?v=","/")}
+              src={getYouTubeEmbedUrl(link)}
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               referrerPolicy="strict-origin-when-cross-origin"
