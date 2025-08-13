@@ -32,8 +32,14 @@ function getYouTubeEmbedUrl(url: string): string {
 
 function getInstagramEmbedUrl(url: string) {
   try {
-    // Instagram oEmbed API format
-    return `https://www.instagram.com/p/${url.split("/p/")[1].split("/")[0]}/embed`;
+    // Match "p", "reel", or "tv" followed by the shortcode
+    const match = url.match(/instagram\.com\/(p|reel|tv)\/([^/?]+)/);
+    if (match) {
+      const type = match[1]; // p / reel / tv
+      const shortcode = match[2];
+      return `https://www.instagram.com/${type}/${shortcode}/embed`;
+    }
+    return url;
   } catch {
     return url;
   }
