@@ -1,5 +1,5 @@
 import { ShareIcon } from "../icons/Icons";
-import {DeleteIcon} from "../icons/DeleteIcon"
+import { DeleteIcon } from "../icons/DeleteIcon";
 import { BackendUrl } from "../../../config";
 import type React from "react";
 import axios from "axios";
@@ -8,111 +8,110 @@ interface CardProps {
   title: string;
   link: string;
   type: "twitter" | "youtube";
-  id:string;
-  setToast?:React.Dispatch<React.SetStateAction<{message:string,success:boolean}|null>>;
+  id: string;
+  setToast?: React.Dispatch<
+    React.SetStateAction<{ message: string; success: boolean } | null>
+  >;
 }
 
-const isSharedContent = location.pathname.includes("/share/");
+const isSharedContent =location.pathname.includes("/share/");
 
 function getYouTubeEmbedUrl(url: string): string {
   try {
-    const parsedUrl = new URL(url);
+    const u = new URL(url);
 
-    // Short URL : youtu.be/VIDEO_ID
-    if (parsedUrl.hostname === "youtu.be") {
-      return `https://www.youtube.com/embed/${parsedUrl.pathname.slice(1)}`;
-    }
+    // youtu.be/<id>
+    if (u.hostname === "youtu.be") return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
 
-    // watch URL: youtube.com/watch?v=VIDEO_ID
-    if (parsedUrl.searchParams.has("v")) {
-      return `https://www.youtube.com/embed/${parsedUrl.searchParams.get("v")}`;
-    }
+    // watch?v=<id>
+    if (u.searchParams.has("v")) return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
 
-    // Shorts URL: youtube.com/shorts/VIDEO_ID
-    if (parsedUrl.pathname.startsWith("/shorts/")) {
-      return `https://www.youtube.com/embed/${parsedUrl.pathname.split("/")[2]}`;
-    }
+    // shorts/<id>
+    if (u.pathname.startsWith("/shorts/")) return `https://www.youtube.com/embed/${u.pathname.split("/")[2]}`;
 
-    //embed link
-    if (parsedUrl.pathname.startsWith("/embed/")) {
-      return url;
-    }
+    // already embed
+    if (u.pathname.startsWith("/embed/")) return url;
 
-    return url; 
+    return url;
   } catch {
-    return url; // invalid URL
+    return url;
   }
 }
 
+export const Card = ({ title, link, type, id, setToast }: CardProps) => {
 
-export const Card = ({ title, link, type,id,setToast }: CardProps) => {
+  async function handleDeleteContent(contentId: string) {
 
-  async function handleDeleteContent(id:string) {
-    try{
-      const response = await axios.delete(`${BackendUrl}/api/v1/content`,{
+    try {
 
-        headers:{
-          "token":localStorage.getItem("token")
-        },
-        data:{contentId:id}
+      const response = await axios.delete(`${BackendUrl}/api/v1/content`, {
+
+        headers: { 
+          token: localStorage.getItem("token") || "" },
+        data: { contentId },
       });
-      console.log(response.data);
 
-      setToast?.({message:response?.data?.message,success:true});
-      console.log(response);
+      setToast?.({ message: response?.data?.message ?? "Deleted!", success: true });
+      window.location.reload();
+
+    } catch (error) {
+
+      console.log(error);
+      setToast?.({ message: "Can't Delete!", success: false });
+
+    } 
+    finally {
+      
+      setTimeout(() => setToast?.(() => null), 3000);
     }
-    catch(error){
-    console.log(error);
-    setToast?.({message:"Can't Delete!",success:false})
-    }
-    
-       setTimeout(() => {
-      setToast?.(()=>null)
-    }, 3000);
   }
 
   return (
-    <div>
-      <div className="bg-white rounded-md p-5 min-w-72 border-gray-200 max-w-84 border  m-2 min-h-84  shadow-md ">
-        <div className="flex justify-between ">
-          <div className="flex justify-center items-center">
-            <div className="text-gray-500 ">
-              <ShareIcon />
-            </div>
-            <span className="p-1 text-slate-800">{title}</span>
-          </div>
-          <div className="flex justify-center items-center ">
-            <div className="text-gray-500">
-              <a href={link} target="_blank">
-                <ShareIcon />
-              </a>
-            </div>
-           {
-            !isSharedContent && 
-             <div className="text-gray-500 pl-2 cursor-pointer" onClick={()=>handleDeleteContent(id)}>
-              <DeleteIcon/>
-            </div>
-           }
-          </div>
+    <div className="bg-white rounded-md p-4 w-full sm:w-72 lg:w-80 border border-gray-200 m-2 shadow-md">
+      <div className="flex justify-between gap-2">
+        <div className="flex items-center gap-2 text-slate-800">
+          <span className="text-gray-500">
+            <ShareIcon />
+          </span>
+          <span className="font-medium line-clamp-2">{title}</span>
         </div>
-        <div className="pt-6">
-          {type === "youtube" && (
+        <div className="flex items-center">
+          <a className="text-gray-500" href={link} target="_blank">
+            <ShareIcon />
+          </a>
+          {!isSharedContent && (
+            <button
+              className="text-gray-500 pl-2 cursor-pointer"
+              onClick={() => handleDeleteContent(id)}
+              aria-label="Delete"
+              title="Delete"
+          
+            >
+              <DeleteIcon />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="pt-4">
+        {type === "youtube" && (
+          <div className="w-full aspect-video">
             <iframe
-              className="w-full"
+              className="w-full h-full rounded"
               src={getYouTubeEmbedUrl(link)}
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen 
-            ></iframe>
-          )}
+              allowFullScreen
+            />
+          </div>
+        )}
 
-          {type === "twitter" && (
-            <blockquote className="twitter-tweet">
-              <a href={link.replace("x.com", "twitter.com")}></a>
-            </blockquote>
-          )}
-        </div>
+        {type === "twitter" && (
+          <blockquote className="twitter-tweet">
+            <a href={link.replace("x.com", "twitter.com")}></a>
+          </blockquote>
+        )}
       </div>
     </div>
   );

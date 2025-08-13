@@ -1,96 +1,96 @@
-
-import { useRef ,useState} from "react";
-import { CrossIcon } from "../icons/CrossIcon";
+import { useRef, useState } from "react";
 import { Button } from "./Button";
 import { Input } from "./InputComponent";
-import { BackendUrl } from "../../../config";
 import axios from "axios";
+import { BackendUrl } from "../../../config";
 
-export enum ContentType{
-    Youtube = "youtube",
-    Twitter = "twitter"
-}
+export type ContentType = "twitter" | "youtube";
 
-export const CreateContent = ({ open, onClose }: any) => {
- const titleRef = useRef<HTMLInputElement>(null);
- const linkRef = useRef<HTMLInputElement>(null);
- const [type,settype] = useState(ContentType.Youtube);
-//  const [error,setError] = useState<string|null>(null);
+export function CreateContent({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
 
-async function AddnewContent(){
-    const title = titleRef.current?.value;
-    const link = linkRef.current?.value;
+  const [type, setType] = useState<ContentType>("youtube");
+  const titleRef = useRef<HTMLInputElement>(null);
+  const linkRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
 
-try{
-        const response = await axios.post(`${BackendUrl}/api/v1/content`,{
-        type,
-        title,
-        link
-    },{
-        headers:{
-            "token":localStorage.getItem("token")
-        }
-    })
-    console.log(response);
-    onClose();
-}
-catch(error:any){
-console.log(error);
-alert("something went wrong")
-}
-}
+  async function onCreate() {
+    const title = titleRef.current?.value?.trim();
+    const link = linkRef.current?.value?.trim();
+
+    if (!title || !link) return;
+
+    try {
+      setBusy(true);
+      await axios.post(
+        `${BackendUrl}/api/v1/content`,
+        { title, link, type },
+        { headers: { token: localStorage.getItem("token") || "" } }
+      );
+      onClose();
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) return null;
 
   return (
-    <div>
-      {open && (
-  <div>
-  
-        <div className="w-screen h-screen bg-slate-200  left-0 top-0 opacity-60  flex justify-center absolute " onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg p-4 w-full max-w-lg shadow-lg"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-semibold mb-4 text-purple-700">Add Content</h3>
 
+        <div className="grid gap-3">
+          <Input ref={titleRef} placeholder="Title..." type="text" />
+          <Input ref={linkRef} placeholder="Paste link..." type="text" />
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={`px-3 py-2 rounded border ${
+                type === "youtube"
+                  ? "bg-purple-600 text-white border-purple-600"
+                  : "bg-white text-purple-700 border-purple-600"
+              }`}
+              onClick={() => setType("youtube")}
+            >
+              YouTube
+            </button>
+            
+            <button
+              className={`px-3 py-2 rounded border ${
+                type === "twitter"
+                  ? "bg-purple-600 text-white border-purple-600"
+                  : "bg-white text-purple-700 border-purple-600"
+              }`}
+              onClick={() => setType("twitter")}
+            >
+              Twitter
+            </button>
+          </div>
+
+          <div className="flex gap-3 justify-end pt-2">
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="dark" onClick={onCreate} Loading={busy}>
+              Create
+            </Button>
+          </div>
         </div>
-
-
-          <div className="flex absolute top-30 left-100">
-
-            <span className=" bg-white p-4 rounded m-2 font-medium min-w-108" onClick={(e)=>e.stopPropagation()}>
-
-              <div className="flex justify-end ">
-                <span className="" onClick={onClose}>
-                    <CrossIcon/>
-                </span>
-              </div>
-
-              <div>
-                <span className=" ml-4 text-lg font-medium ">Type</span>
-                <div className="flex justify-between p-2">
-                    <Button variant={type===ContentType.Youtube?"light":"dark"}
-                     text="Youtube"
-                    size="md" 
-                    onClick={()=>{
-                        settype(ContentType.Youtube);
-                    }}
-                    fullWidth={true}
-                    />
-                    <Button variant={type===ContentType.Twitter?"light":"dark"} 
-                    text="Twitter"
-                        fullWidth={true}
-                    size="md" onClick={()=>{
-                        settype(ContentType.Twitter);
-                    }}/>
-                </div>
-              <Input placeholder={"Title"} ref={titleRef} type="text"/>
-              <Input placeholder={"Link"} ref={linkRef} type="text"/>
-              </div>
-             <div className="flex justify-center m-2">
-                 <Button variant={"light"} size={"sm"}  text={"Submit"} onClick={AddnewContent}/>
-             </div>
-            </span>
-          </div> 
-       
-  </div>
-      )}
+      </div>
     </div>
   );
-};
-
-
+}
