@@ -38,7 +38,8 @@ export function Signup() {
 
   return (
     <div className="min-h-screen w-full bg-gray-100 flex justify-center items-center px-4">
-      <div className="bg-white rounded border border-purple-200 w-full max-w-md sm:min-w-96 min-h-76 flex flex-col justify-around p-4">
+      <div className="bg-white rounded border border-purple-200 w-full max-w-md sm:min-w-96 min-h-86 flex flex-col justify-around p-4">
+      <div className="self-center text-xl font-semibold">WelCome, to <span className="text-purple-600">IdeaNode👋</span></div>
         <div className="p-2">
           {error && (
             <span className="text-red-500 font-medium p-3 text-sm">
@@ -121,7 +122,9 @@ export function SignIn() {
 
   return (
     <div className="min-h-screen w-full bg-gray-100 flex justify-center items-center px-4">
-      <div className="bg-white rounded border border-purple-200 w-full max-w-md sm:min-w-96 min-h-76 flex flex-col justify-around p-4">
+      <div className="bg-white rounded border border-purple-200 w-full max-w-md sm:min-w-96 min-h-86 flex flex-col justify-around p-4">
+      <div className="self-center text-xl font-semibold">WelCome back, to <span className="text-purple-600">IdeaNode👋</span></div>
+
         <div className="p-2">
           {error && (
             <span className="text-red-500 font-medium p-3 text-sm">

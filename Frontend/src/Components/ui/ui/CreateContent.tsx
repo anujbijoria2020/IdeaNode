@@ -31,8 +31,7 @@ export function CreateContent({
 
     try {
       setBusy(true);
-      await axios.post(
-        `${BackendUrl}/api/v1/content`,
+      await axios.post(`${BackendUrl}/api/v1/content`,
         { title, link, type ,tags},
         { headers: { token: localStorage.getItem("token") || "" } }
       );
@@ -79,7 +78,7 @@ export function CreateContent({
                 type === "twitter"
                   ? "bg-purple-600 text-white border-purple-600"
                   : "bg-white text-purple-700 border-purple-600"
-              }`}
+            }`}
               onClick={() => setType("twitter")}
             >
               Twitter
