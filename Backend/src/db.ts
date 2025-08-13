@@ -10,7 +10,7 @@ const UserSchema = new Schema({
 
 // Tag Schema
 const TagSchema = new Schema({
-  title: { type: String, required: true },
+  title: { type: String, required: false },
 });
 
 // Content Schema
