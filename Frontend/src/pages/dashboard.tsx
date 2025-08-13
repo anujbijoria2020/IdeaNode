@@ -24,7 +24,6 @@ export function DashBoard() {
   useEffect(() => {
     setLoading(true);
     refresh();
-    // Small timeout to avoid flicker if loading is very fast
     setTimeout(() => setLoading(false), 500);
   }, [modalOpen]);
 

@@ -7,6 +7,7 @@ import { Button } from "./Button";
 import { SidebarItem } from "./SidebarItem";
 import { NoteIcon } from "../icons/Note";
 import { InstagramIcon } from "../icons/Instagram";
+import { HomeIcon } from "../icons/HomeIcon";
 
 const isSharedContent =
   typeof window !== "undefined" && location.pathname.includes("/share/");
@@ -19,6 +20,8 @@ export function Sidebar({
   const [active, setActive] = useState<string>("");
 
   const menuItems = [
+    { text: "all", icon: <HomeIcon />, type: "all" },
+
     { text: "Twitter", icon: <TwitterIcon />, type: "Twitter" },
     { text: "Youtube", icon: <YouTubeIcon />, type: "Youtube" },
     { text: "Instagram", icon: <InstagramIcon />, type: "Instagram" },
