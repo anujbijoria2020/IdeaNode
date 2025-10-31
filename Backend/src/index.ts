@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import express, { type NextFunction } from "express";
+import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import route from './Routes.js';

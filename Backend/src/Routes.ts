@@ -15,7 +15,7 @@ route.post("/api/v1/signup", async (req:Request, res:Response) => {
 
   try {
     const validatedUser = SignupSchema.parse({ username, password });
-
+  
     const existingUser = await User.findOne({ username });
 
     if (existingUser) {

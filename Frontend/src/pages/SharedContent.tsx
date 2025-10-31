@@ -3,7 +3,7 @@ import { Sidebar } from "../Components/ui/Sidebar";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { BackendUrl } from "../config";
-import { Card } from "../Components/ui/Crad";
+import { Card } from "../Components/ui/Card";
 import type { ContentType } from "../Components/ui/CreateComponent";
 
 
