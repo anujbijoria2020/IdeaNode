@@ -5,6 +5,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import route from './Routes.js';
+import path from "path";
 
 export const port  = process.env.PORT || 3000;
 const app = express();
@@ -25,6 +26,9 @@ mongoose
 //middlewares
 app.use(express.json());
 app.use(cors());
+// in server startup file
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 
 //routes
 app.use("/",route)

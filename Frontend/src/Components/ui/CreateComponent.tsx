@@ -1,111 +1,144 @@
 import { useRef, useState } from "react";
-import { Input } from "./InputComponent";
 import axios from "axios";
-import { BackendUrl } from "../../config";
+import { CrossIcon } from "../icons/CrossIcon";
 import { Button } from "./Button";
+import { Input } from "./InputComponent";
+import { BackendUrl } from "../../config";
 
-export type ContentType = "youtube" | "twitter" | "instagram" | "note";
+export enum ContentType {
+  Youtube = "youtube",
+  Twitter = "twitter",
+  Note = "note",
+  PDF = "pdf"
+}
 
-export function CreateContent({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
-  const [type, setType] = useState<ContentType>("youtube");
+export const CreateContent = ({ open, onClose }: any) => {
   const titleRef = useRef<HTMLInputElement>(null);
   const linkRef = useRef<HTMLInputElement>(null);
-  const textRef = useRef<HTMLTextAreaElement>(null);
-  const tagsRef = useRef<HTMLInputElement>(null);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [type, setType] = useState<ContentType>(ContentType.Youtube);
+  const [loading, setLoading] = useState(false);
 
-  const [busy, setBusy] = useState(false);
+  async function handleSubmit() {
+    const title = titleRef.current?.value;
+    const link = linkRef.current?.value;
+    const note = noteRef.current?.value;
 
-  async function onCreate() {
-    const title = titleRef.current?.value?.trim();
-    const tags = tagsRef.current?.value?.trim().split(",") || [];
-    let content = linkRef.current?.value?.trim();
-
-    // For notes, use the textarea value instead of link
-    if (type === "note") {
-      content = textRef.current?.value?.trim();
+    if (!title || (type !== ContentType.Note && !link && !file)) {
+      alert("Please fill all required fields");
+      return;
     }
 
-    if (!title || !content) return;
-
     try {
-      setBusy(true);
-      await axios.post(
-        `${BackendUrl}/api/v1/content`,
-        { title, link: content, type, tags },
-        { headers: { token: localStorage.getItem("token") || "" } }
-      );
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("type", type);
+      formData.append("title", title);
+      if (link) formData.append("link", link);
+      if (note) formData.append("note", note);
+      if (file) formData.append("file", file);
+
+      const response = await axios.post(`${BackendUrl}/api/v1/content`, formData, {
+        headers: {
+          "token": localStorage.getItem("token") || "",
+          "Content-Type": "multipart/form-data"
+        },
+      });
+
+      alert("Content added successfully ✅");
+      console.log("Response:", response.data);
       onClose();
-    } catch (e) {
-      console.error(e);
+    } catch (error: any) {
+      console.error(error);
+      alert("Something went wrong ❌");
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
   }
 
-  if (!open) return null;
+  const renderInputs = () => {
+    switch (type) {
+      case ContentType.Note:
+        return (
+          <textarea
+            ref={noteRef}
+            placeholder="Write your note here..."
+            className="w-full p-2 mt-2 border rounded-lg"
+            rows={6}
+          />
+        );
+
+      case ContentType.PDF:
+        return (
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="mt-2 w-full"
+          />
+        );
+
+      default:
+        return (
+          <Input placeholder={"Paste the link"} ref={linkRef} type="text" />
+        );
+    }
+  };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50 px-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg p-4 w-full max-w-lg shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-semibold mb-4 text-purple-700">Add Content</h3>
+    <div>
+      {open && (
+        <div>
+          {/* Overlay */}
+          <div
+            className="w-screen h-screen bg-black/40 fixed top-0 left-0 flex justify-center items-center"
+            onClick={onClose}
+          />
 
-        <div className="grid gap-3">
-          <Input ref={titleRef} placeholder="Title..." type="text" />
+          {/* Popup Card */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white shadow-lg p-5 rounded-xl w-[400px]">
+            <div className="flex justify-end">
+              <span onClick={onClose} className="cursor-pointer">
+                <CrossIcon />
+              </span>
+            </div>
 
-          {/* Show link input for URLs */}
-          {type !== "note" && <Input ref={linkRef} placeholder="Paste link..." type="text" />}
+            <h2 className="text-lg font-semibold mb-3">Add New Content</h2>
 
-          {/* Show textarea for notes */}
-          {type === "note" && (
-            <textarea
-              ref={textRef}
-              placeholder="Write your note here..."
-              className="border rounded p-2 w-full h-32"
-            />
-          )}
+            {/* Type Selector */}
+            <div className="flex justify-between gap-2 mb-3">
+              {Object.values(ContentType).map((t) => (
+                <Button
+                  key={t}
+                  variant={type === t ? "light" : "dark"}
+                  text={t.charAt(0).toUpperCase() + t.slice(1)}
+                  size="md"
+                  onClick={() => setType(t)}
+                  fullWidth
+                />
+              ))}
+            </div>
 
-          <Input ref={tagsRef} placeholder="Tags (comma separated)" type="text" />
+            {/* Title */}
+            <Input placeholder="Title" ref={titleRef} type="text" />
 
-          {/* Type selection buttons */}
-          <div className="flex flex-wrap gap-2">
-            {(["youtube", "twitter", "instagram", "note"] as ContentType[]).map((t) => (
-              <button
-                key={t}
-                className={`px-3 py-2 rounded border ${
-                  type === t
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-white text-purple-700 border-purple-600"
-                }`}
-                onClick={() => setType(t)}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
+            {/* Dynamic input (link, note, or pdf) */}
+            <div className="mt-3">{renderInputs()}</div>
 
-          {/* Action buttons */}
-          <div className="flex gap-3 justify-end pt-2">
-            <Button variant="dark" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button variant="dark" onClick={onCreate} Loading={busy}>
-              Create
-            </Button>
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="light"
+                size="sm"
+                text={loading ? "Adding..." : "Submit"}
+                onClick={handleSubmit}
+                disabled={loading}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
-}
+};

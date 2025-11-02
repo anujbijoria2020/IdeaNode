@@ -8,8 +8,9 @@ import { useEffect, useState } from "react";
 interface CardProps {
   title: string;
   link: string;
-  type: "twitter" | "youtube" | "instagram" | "note";
+  type: "twitter" | "youtube" | "instagram" | "note" | "pdf";
   id: string;
+  text?: string; // 👈 add this to support note text
   setToast?: React.Dispatch<
     React.SetStateAction<{ message: string; success: boolean } | null>
   >;
@@ -32,10 +33,9 @@ function getYouTubeEmbedUrl(url: string): string {
 
 function getInstagramEmbedUrl(url: string) {
   try {
-    // Match "p", "reel", or "tv" followed by the shortcode
     const match = url.match(/instagram\.com\/(p|reel|tv)\/([^/?]+)/);
     if (match) {
-      const type = match[1]; // p / reel / tv
+      const type = match[1];
       const shortcode = match[2];
       return `https://www.instagram.com/${type}/${shortcode}/embed`;
     }
@@ -45,7 +45,7 @@ function getInstagramEmbedUrl(url: string) {
   }
 }
 
-export const Card = ({ title, link, type, id, setToast }: CardProps) => {
+export const Card = ({ title, link, type, id, text, setToast }: CardProps) => {
   const [tweetLoading, setTweetLoading] = useState(type === "twitter");
 
   useEffect(() => {
@@ -85,15 +85,16 @@ export const Card = ({ title, link, type, id, setToast }: CardProps) => {
       {/* Header */}
       <div className="flex justify-between gap-2">
         <div className="flex items-center gap-2 text-slate-800">
-          <span className="text-gray-500">
-            <ShareIcon />
-          </span>
           <span className="font-medium line-clamp-2">{title}</span>
         </div>
         <div className="flex items-center">
-          <a className="text-gray-500" href={link} target="_blank">
-            <ShareIcon />
-          </a>
+          {/* Share Button */}
+          {link && (
+            <a className="text-gray-500" href={link} target="_blank" rel="noopener noreferrer">
+              <ShareIcon />
+            </a>
+          )}
+          {/* Delete Button */}
           {!isSharedContent && (
             <button
               className="text-gray-500 pl-2 cursor-pointer"
@@ -152,9 +153,27 @@ export const Card = ({ title, link, type, id, setToast }: CardProps) => {
           </div>
         )}
 
+        {/* ✅ NOTE Card */}
         {type === "note" && (
-          <div className="bg-gray-50 border rounded p-3 whitespace-pre-wrap break-words">
-            {link}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-2">
+            <p className="text-gray-800 whitespace-pre-wrap break-words">
+              {text || "No note content available"}
+            </p>
+          </div>
+        )}
+
+        {/* ✅ PDF Card */}
+        {type === "pdf" && (
+          <div className="mt-2 p-3 border border-gray-200 rounded bg-gray-50">
+            <p className="text-gray-700 mb-2">📄 PDF Uploaded:</p>
+            <a
+              href={`${BackendUrl}/${link}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              Open PDF
+            </a>
           </div>
         )}
       </div>

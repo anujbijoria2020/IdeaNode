@@ -14,13 +14,19 @@ const TagSchema = new Schema({
 });
 
 // Content Schema
+// Backend/src/db.ts
+
 const ContentSchema = new Schema({
-  link: { type: String, required: true },
+  link: { type: String },
   title: { type: String, required: true },
   type: { type: String, required: true },
   tags: [{ type: ObjectId, ref: "Tag" }],
   userId: { type: ObjectId, ref: "User", required: true },
+  embedding: { type: [Number], default: [] }, // ← store embedding vector here
+  text: { type: String }, // optional, useful for notes or extracted pdf text
 });
+
+
 
 // Link Schema
 const LinkSchema = new Schema({

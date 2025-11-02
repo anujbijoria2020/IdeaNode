@@ -1,34 +1,45 @@
-import { HomeIcon, InstagramIcon, NotebookIcon } from "lucide-react";
+// 📁 src/Components/ui/Sidebar.tsx
+
+import { HomeIcon, InstagramIcon, NotebookIcon, MessageSquare, FileText } from "lucide-react";
 import { useState } from "react";
 import { TwitterIcon } from "../icons/Twitter";
 import { YouTubeIcon } from "../icons/Youtube";
+import { LogoIcon } from "../icons/Logo";
 import { SidebarItem } from "./SidebarItem";
 import { Button } from "./Button";
 import { signOut } from "../../pages/Auth";
-import { LogoIcon } from "../icons/Logo";
+
 
 const isSharedContent =
   typeof window !== "undefined" && location.pathname.includes("/share/");
 
 export function Sidebar({
   onfilterChange,
+  onQnAClick,
 }: {
   onfilterChange: (type: string) => void;
+  onQnAClick?: () => void;
 }) {
-  const [active, setActive] = useState<string>("");
+  const [active, setActive] = useState<string>("all");
 
   const menuItems = [
-    { text: "all", icon: <HomeIcon/>, type: "all" },
-
-    { text: "Twitter", icon: <TwitterIcon/>, type: "Twitter" },
-    { text: "Youtube", icon: <YouTubeIcon/>, type: "Youtube" },
-    { text: "Instagram", icon: <InstagramIcon/>, type: "Instagram" },
-    { text: "Note", icon: <NotebookIcon/>, type: "Note" },
+    { text: "All", icon: <HomeIcon />, type: "all" },
+    { text: "Twitter", icon: <TwitterIcon/>, type: "twitter" },
+    { text: "Youtube", icon: <YouTubeIcon/>, type: "youtube" },
+    { text: "Note", icon: <NotebookIcon />, type: "note" },
+    { text: "PDF", icon: <FileText />, type: "pdf" },
   ];
 
   const handleItemClick = (type: string) => {
     setActive(type);
     onfilterChange(type);
+  };
+
+  const handleQnAClick = () => {
+    setActive("qna");
+    if (onQnAClick) {
+      onQnAClick();
+    }
   };
 
   return (
@@ -38,11 +49,11 @@ export function Sidebar({
         <div>
           <div className="flex text-xl font-semibold pl-3 pt-4 items-center cursor-pointer">
             <div className="pr-2 text-purple-600">
-              <LogoIcon />
+              <LogoIcon/>
             </div>
             IdeaNode
           </div>
-          <div className="pt-4">
+          <div className="pt-4 space-y-1">
             {menuItems.map((item) => (
               <SidebarItem
                 key={item.type}
@@ -52,6 +63,17 @@ export function Sidebar({
                 onClick={() => handleItemClick(item.type)}
               />
             ))}
+
+            {/* QnA Section Separator */}
+            <div className="my-3 border-t border-gray-200"></div>
+
+            {/* QnA Item */}
+            <SidebarItem
+              text="Ask Questions"
+              icon={<MessageSquare />}
+              active={active === "qna"}
+              onClick={handleQnAClick}
+            />
           </div>
         </div>
         {!isSharedContent && (
@@ -82,7 +104,7 @@ export function Sidebar({
             </Button>
           )}
         </div>
-        <div className="flex items-center gap-2 px-2 pb-2">
+        <div className="flex items-center gap-2 px-2 pb-2 overflow-x-auto">
           {menuItems.map((item) => (
             <SidebarItem
               key={item.type}
@@ -93,6 +115,13 @@ export function Sidebar({
               onClick={() => handleItemClick(item.type)}
             />
           ))}
+          <SidebarItem
+            compact
+            text="Q&A"
+            icon={<MessageSquare />}
+            active={active === "qna"}
+            onClick={handleQnAClick}
+          />
         </div>
       </div>
     </>
