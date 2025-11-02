@@ -45,6 +45,8 @@ function getInstagramEmbedUrl(url: string) {
 export const Card = ({ title, link, type, id, text }: CardProps) => {
   const [tweetLoading, setTweetLoading] = useState(type === "twitter");
 
+  const [isNoteOpen,setIsNoteOpen] = useState(false);
+
   useEffect(() => {
     if (type === "twitter" && (window as any).twttr?.widgets) {
       (window as any).twttr.widgets.load();
@@ -53,6 +55,15 @@ export const Card = ({ title, link, type, id, text }: CardProps) => {
       });
     }
   }, [type, link]);
+
+    useEffect(() => {
+    if (!isNoteOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsNoteOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isNoteOpen]);
 
   async function handleDeleteContent(contentId: string) {
     try {
@@ -137,24 +148,51 @@ toast.error("something went wrong")    }
           </div>
         )}
 
-        {type === "instagram" && (
-          <div className="w-full aspect-square rounded-lg overflow-hidden bg-gray-50">
-            <iframe
-              className="w-full h-full"
-              src={getInstagramEmbedUrl(link)}
-              title="Instagram embed"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-        )}
 
         {type === "note" && (
           <div className="mt-2 rounded-lg bg-gray-50 p-4">
-            <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap break-words line-clamp-4">
-              {text || "No note content available"}
-            </p>
+              <button
+              onClick={() => setIsNoteOpen(true)}
+              className="w-full text-left mt-2 rounded-lg bg-gray-50 p-4 hover:bg-gray-100 transition-colors"
+              aria-expanded={isNoteOpen}
+            >
+              <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words line-clamp-4">
+                {text || "No note content available"}
+              </p>
+            </button>
+             {isNoteOpen && (
+              <div
+                className="fixed inset-0 z-40 flex items-center justify-center px-4"
+                aria-modal="true"
+                role="dialog"
+                onClick={() => setIsNoteOpen(false)}
+              >
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                <div
+                  className="relative z-50 w-full max-w-2xl bg-white rounded-lg shadow-lg p-6"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <h4 className="text-sm font-medium text-gray-900">{title}</h4>
+                    <button
+                      onClick={() => setIsNoteOpen(false)}
+                      className="text-gray-400 hover:text-gray-600 p-1 rounded"
+                      aria-label="Close note"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="mt-4">
+                    <textarea
+                      readOnly
+                      value={text || ""}
+                      className="w-full min-h-[200px] resize-none p-3 border border-gray-100 rounded text-sm text-gray-800 bg-gray-50"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
