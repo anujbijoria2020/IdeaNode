@@ -61,7 +61,9 @@ export const Card = ({ title, link, type, id, text }: CardProps) => {
         //@ts-ignore
         data: { contentId },
       });
-      toast.success("deleted successfully");
+      if(response.status){
+        toast.success("deleted successfully");
+      }
       window.location.reload();
     } catch (error) {
       console.log(error);
