@@ -12,7 +12,7 @@ interface SharedContentResponse {
   Data: Content[];
 }
 
-interface Content {
+export interface Content {
   _id: string;
   link: string;
   title: string;
