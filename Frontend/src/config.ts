@@ -1,1 +1,1 @@
-export const BackendUrl:string = "http://localhost:3000";
+export const BackendUrl:string = "https://ideanode-2-8sws.onrender.com";
