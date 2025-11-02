@@ -21,8 +21,8 @@ export const SidebarItem = ({
           ? "px-3 py-2 text-sm"
           : "p-3 text-base",
         active
-          ? "bg-slate-200 text-purple-700"
-          : "text-gray-700 duration-300 ease-in-out",
+          ? "bg-slate-200 text-gray-700"
+          : "text-black duration-300 ease-in-out",
       ].join(" ")}
       onClick={onClick}
     >

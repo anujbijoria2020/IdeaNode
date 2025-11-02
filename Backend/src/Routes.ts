@@ -11,7 +11,7 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { generateEmbedding, generateAnswer, cosineSimilarity } from './utils/GeminiService.js';
-import { extractTextFromPDF } from './utils/extractor.js';
+import { extractTextFromPDF, extractTweet } from './utils/extractor.js';
 
 const route: Router = express.Router();
 
@@ -70,7 +70,20 @@ route.post(
       // Generate embeddings for NOTE type
       if (type === "note" && note) {
         console.log("🔍 Generating embeddings for note...");
-        embeddings = await generateEmbedding(note);
+        text = note;
+        embeddings = await generateEmbedding(text);
+      }
+
+      if(type==='twitter' && link){
+        text =await extractTweet(link);
+        if(!text){
+          return res.status(301).json({
+            success:false,
+            message:"twitter text not generated"
+          })
+        }
+        console.log(text);
+        embeddings = await generateEmbedding(text as any);
       }
 
       // Create content document
@@ -79,7 +92,7 @@ route.post(
         title,
         type,
         userId,
-        text: note || "",
+        text:text||"",
         embedding: embeddings,
       });
 

@@ -65,9 +65,7 @@ ${question}
 Rules:
 1. Use ONLY the info from context.
 2. If context lacks info, reply "I couldn't find that in your brain."
-3. Keep it under 4 sentences.
-4. Don't make up information.
-
+3. Don't make up information.
 Answer:
 `;
 
