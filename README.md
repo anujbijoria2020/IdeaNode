@@ -16,7 +16,20 @@ A modern web application for saving and organizing various types of content incl
 - 🎨 Clean, minimal UI design
 - 🔐 User authentication and content protection
 
+
+##Authectication Page of IdeaNode
+!["Auth page"](https://github.com/anujbijoria2020/IdeaNode/blob/main/images/Screenshot%20(173).png)
+
+
+##Dashboard of IdeaNode
   !["Dashboard of IdeaNode"](https://github.com/anujbijoria2020/IdeaNode/blob/main/images/dashboard.png)
+
+##Adding content
+  !["Adding Content"](https://github.com/anujbijoria2020/IdeaNode/blob/main/images/add.png)
+
+##QnA
+!["Ai insight"](https://github.com/anujbijoria2020/IdeaNode/blob/main/images/qna.png)
+
 
 ## Tech Stack
 
