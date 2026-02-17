@@ -107,15 +107,6 @@ npm run dev
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License
 
-## Acknowledgments
 
-- [Tailwind CSS](https://tailwindcss.com) for the styling system
-- [React](https://reactjs.org) for the frontend framework
-- All the content platforms (YouTube, Twitter, Instagram) for their embed APIs
-
-## Contact
-
-Your Name - [@yourusername](https://twitter.com/yourusername)
-Project Link: [https://github.com/yourusername/ideaNode](https://github.com/yourusername/ideaNode)
