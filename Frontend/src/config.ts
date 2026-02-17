@@ -1,1 +1,1 @@
-export const BackendUrl:string = "https://ideanode-2-8sws.onrender.com";
+export const BackendUrl:string = "https://ideanode-secondbrain-ai-insights-1.onrender.com";
