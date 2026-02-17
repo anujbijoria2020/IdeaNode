@@ -17,14 +17,14 @@ const route: Router = express.Router();
 
 // 📁 Set up multer for PDF uploads
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (req:any, file:any, cb:any) {
     const uploadDir = "uploads";
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir);
     }
     cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
+  filename: function (req:any, file:any, cb:any) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
@@ -32,7 +32,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req:any, file:any, cb:any) => {
     if (file.mimetype === "application/pdf") cb(null, true);
     else cb(new Error("Only PDF files are allowed"));
   },
@@ -171,15 +171,15 @@ route.post("/api/v1/qna", UserMiddleWare, async (req: Request, res: Response) =>
 
     // Step 4: Calculate similarity scores
     const contentWithSimilarity = allContent
-      .map((content) => ({
+      .map((content:any) => ({
         id: content._id.toString(),
         title: content.title,
         type: content.type,
         text: content.text || "",
         similarity: cosineSimilarity(questionEmbedding, content.embedding),
       }))
-      .filter((content) => content.similarity > 0.3) // Filter out low similarity
-      .sort((a, b) => b.similarity - a.similarity)
+      .filter((content:any) => content.similarity > 0.3) // Filter out low similarity
+      .sort((a:any, b:any) => b.similarity - a.similarity)
       .slice(0, 3); // Top 3 most similar
 
     console.log(`✅ Found ${contentWithSimilarity.length} similar content pieces`);
@@ -195,7 +195,7 @@ route.post("/api/v1/qna", UserMiddleWare, async (req: Request, res: Response) =>
     // Step 5: Prepare context from similar content
     const context = contentWithSimilarity
       .map(
-        (content, idx) =>
+        (content:any, idx:number) =>
           `[Content ${idx + 1}: ${content.title}]\n${content.text}`
       )
       .join("\n\n");
@@ -207,7 +207,7 @@ route.post("/api/v1/qna", UserMiddleWare, async (req: Request, res: Response) =>
     // Step 7: Return response
     return res.status(200).json({
       answer,
-      relatedContent: contentWithSimilarity.map((content) => ({
+      relatedContent: contentWithSimilarity.map((content:any) => ({
         id: content.id,
         title: content.title,
         type: content.type,
@@ -334,7 +334,7 @@ route.get("/api/v1/content", UserMiddleWare, async (req: Request, res: Response)
 });
 
 // 📌 DELETE CONTENT
-route.delete("/api/v1/content", UserMiddleWare, async (req, res) => {
+route.delete("/api/v1/content", UserMiddleWare, async (req: any, res: any) => {
   const contentId = req.body.contentId;
   const userId = (req as any).userId;
   try {
@@ -348,16 +348,16 @@ route.delete("/api/v1/content", UserMiddleWare, async (req, res) => {
       DeletedContent: response,
       success: true,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(400).send({
-      message: "there is some error" + error,
+      message: "there is some error" + error.message,
       success: false,
     });
   }
 });
 
 // 📌 SHARE CONTENT
-route.post("/api/v1/content/share", UserMiddleWare, async (req, res) => {
+route.post("/api/v1/content/share", UserMiddleWare, async (req: any, res: any) => {
   const userId = (req as any).userId;
   const share = req.body.share;
   try {
@@ -399,7 +399,7 @@ route.post("/api/v1/content/share", UserMiddleWare, async (req, res) => {
 });
 
 // 📌 GET SHARED CONTENT
-route.get("/api/v1/content/share/:hash", async (req, res) => {
+route.get("/api/v1/content/share/:hash", async (req: any, res: any) => {
   try {
     const { hash } = req.params;
 
