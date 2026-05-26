@@ -109,6 +109,7 @@ export function SharedContent() {
                 title={content.title}
                 id={content._id}
                 text={content.text}
+                onDelete={fetchSharedData}
               />
             ))}
           </div>

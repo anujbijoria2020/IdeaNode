@@ -74,8 +74,8 @@ export function Signup() {
     const username = usernameRef.current?.value?.trim();
     const password = passwordRef.current?.value?.trim();
 
-    if (!username || username.length < 3)
-      return setError("Username must be at least 3 characters!");
+    if (!username || username.length < 4)
+      return setError("Username must be at least 4 characters!");
     if (!password || password.length < 8)
       return setError("Password must be at least 8 characters!");
 
@@ -228,8 +228,8 @@ export function SignIn() {
     const username = usernameRef.current?.value?.trim();
     const password = passwordRef.current?.value?.trim();
 
-    if (!username || username.length < 3)
-      return setError("Username must be at least 3 characters!");
+    if (!username || username.length < 4)
+      return setError("Username must be at least 4 characters!");
     if (!password || password.length < 8)
       return setError("Password must be at least 8 characters!");
 

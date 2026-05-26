@@ -12,6 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { generateEmbedding, generateAnswer, cosineSimilarity } from './utils/GeminiService.js';
 import { extractTextFromPDF, extractTweet } from './utils/extractor.js';
+import { extractYouTubeTranscript, extractYouTubeTranscriptWithRetry, extractYouTubeMetadata } from './utils/YoutubeService.js';
 
 const route: Router = express.Router();
 
@@ -45,6 +46,7 @@ route.post(
   upload.single("file"),
   async (req: Request, res: Response) => {
     const { link, title, type, note } = req.body;
+    let contentTitle = title;
     const userId = (req as any).userId;
     try {
       let embeddings: number[] = [];
@@ -74,22 +76,67 @@ route.post(
         embeddings = await generateEmbedding(text);
       }
 
-      if(type==='twitter' && link){
-        text =await extractTweet(link);
-        if(!text){
-          return res.status(301).json({
-            success:false,
-            message:"twitter text not generated"
-          })
+      if (type === 'twitter' && link) {
+        text = await extractTweet(link);
+        if (!text) {
+          console.warn("⚠️ Twitter text extraction failed. Using fallback text.");
+          text = `Twitter Post: ${contentTitle || link}`;
         }
-        console.log(text);
+        console.log("Twitter Text to embed:", text);
         embeddings = await generateEmbedding(text as any);
+      }
+
+      if (type === "youtube" && link) {
+        console.log("🎥 Processing YouTube link...");
+        let ytText = "";
+        let extractedTitle = "";
+
+        // 1. Fetch metadata (Title & Description) as fallback or context
+        try {
+          const metadata = await extractYouTubeMetadata(link);
+          if (metadata) {
+            extractedTitle = metadata.title;
+            ytText = `Title: ${metadata.title}\nDescription: ${metadata.description}`;
+          }
+        } catch (err: any) {
+          console.warn("⚠️ YouTube metadata extraction failed:", err.message);
+        }
+
+        // 2. Fetch transcript if available
+        try {
+          const transcript = await extractYouTubeTranscriptWithRetry(link);
+          if (transcript) {
+            if (ytText) {
+              ytText += `\nTranscript: ${transcript}`;
+            } else {
+              ytText = transcript;
+            }
+          }
+        } catch (err: any) {
+          console.warn("⚠️ YouTube transcript extraction failed:", err.message);
+        }
+
+        // 3. Reject if no transcript found
+        if (!ytText.includes("Transcript:")) {
+          return res.status(400).json({
+            message: "Could not extract transcript from YouTube video. Please try another video.",
+            success: false,
+          });
+        }
+
+        text = ytText;
+        embeddings = await generateEmbedding(text);
+
+        // Auto-fill empty title with extracted title
+        if (!contentTitle && extractedTitle) {
+          contentTitle = extractedTitle;
+        }
       }
 
       // Create content document
       const createdContent = await Content.create({
         link: filePath || link || null,
-        title,
+        title: contentTitle || "Untitled Content",
         type,
         userId,
         text:text||"",
@@ -199,6 +246,9 @@ route.post("/api/v1/qna", UserMiddleWare, async (req: Request, res: Response) =>
           `[Content ${idx + 1}: ${content.title}]\n${content.text}`
       )
       .join("\n\n");
+
+    console.log("📝 Context prepared, length:", context.length);
+    console.log("📝 Context preview:", context.slice(0, 200));
 
     // Step 6: Generate answer using Gemini
     console.log("🤖 Generating answer with Gemini...");
@@ -310,6 +360,10 @@ route.post("/api/v1/signin", async (req: Request, res: Response) => {
 // 📌 SIGNOUT
 route.post("/api/v1/signout", UserMiddleWare, async (req: Request, res: Response) => {
   console.log("after middleware");
+  return res.status(200).json({
+    message: "Signout successful ✅",
+    success: true,
+  });
 });
 
 // 📌 GET ALL CONTENT

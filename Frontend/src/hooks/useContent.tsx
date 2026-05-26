@@ -9,7 +9,10 @@ export function useContent() {
   async function refresh() {
     try {
       const response = await axios.get(`${BackendUrl}/api/v1/content`, {
-        headers: { token: localStorage.getItem("token") },
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          token: localStorage.getItem("token") || "" 
+        },
       });
 
       console.log("API response:", response.data);

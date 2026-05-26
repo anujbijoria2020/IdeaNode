@@ -11,6 +11,7 @@ interface CardProps {
   type: "twitter" | "youtube" | "instagram" | "note" | "pdf";
   id: string;
   text?: string; // 👈 add this to support note text
+  onDelete?: () => void; // 👈 callback to refresh parent UI without full reload
 }
 
 const isSharedContent = location.pathname.includes("/share/");
@@ -29,7 +30,7 @@ function getYouTubeEmbedUrl(url: string): string {
 }
 
 
-export const Card = ({ title, link, type, id, text }: CardProps) => {
+export const Card = ({ title, link, type, id, text, onDelete }: CardProps) => {
   const [tweetLoading, setTweetLoading] = useState(type === "twitter");
 
   const [isNoteOpen,setIsNoteOpen] = useState(false);
@@ -55,14 +56,23 @@ export const Card = ({ title, link, type, id, text }: CardProps) => {
   async function handleDeleteContent(contentId: string) {
     try {
       const response = await axios.delete(`${BackendUrl}/api/v1/content`, {
-        headers: { token: localStorage.getItem("token") || "" },
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          token: localStorage.getItem("token") || "" 
+        },
         //@ts-ignore
         data: { contentId },
       });
       if(response.status){
         toast.success("deleted successfully");
+        if (onDelete) {
+          onDelete();
+        } else {
+          window.location.reload();
+        }
+      } else {
+        window.location.reload();
       }
-      window.location.reload();
     } catch (error) {
       console.log(error);
 toast.error("something went wrong")    } 
@@ -137,10 +147,10 @@ toast.error("something went wrong")    }
 
 
         {type === "note" && (
-          <div className="mt-2 rounded-lg bg-gray-50 p-4">
+          <div className="mt-2">
               <button
               onClick={() => setIsNoteOpen(true)}
-              className="w-full text-left mt-2 rounded-lg bg-gray-50 p-4 hover:bg-gray-100 transition-colors"
+              className="w-full text-left rounded-lg bg-gray-50 p-4 hover:bg-gray-100 transition-colors border border-gray-50"
               aria-expanded={isNoteOpen}
             >
               <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words line-clamp-4">

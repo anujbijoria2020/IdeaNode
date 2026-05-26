@@ -54,9 +54,9 @@ function handleExplore() {
           />
   </div>
         </div>
-  <div className="flex justify-center">
+  <div className="flex justify-center gap-1">
     <span>Want to add content?</span>
-    <span className="text-blue-800 cursor-pointer">Sign In</span>
+    <span className="text-blue-800 cursor-pointer hover:underline" onClick={() => navigate("/signin")}>Sign In</span>
   </div>
       </div>
     </div>

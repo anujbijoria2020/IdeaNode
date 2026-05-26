@@ -52,6 +52,7 @@ export const QnASection = () => {
         },
         {
           headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
             token: localStorage.getItem("token") || "",
           },
         }

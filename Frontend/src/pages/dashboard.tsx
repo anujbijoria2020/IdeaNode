@@ -43,7 +43,12 @@ export function DashBoard() {
       const response = await axios.post<ShareLinkResponse>(
         `${BackendUrl}/api/v1/content/share`,
         { share: true },
-        { headers: { token: localStorage.getItem("token") || "" } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            token: localStorage.getItem("token") || "" 
+          } 
+        }
       );
 
       const hash = response?.data?.hash;
@@ -174,6 +179,7 @@ toast.error("link copied failed , try agin!")
                       link={content.link as string}
                       title={content.title as string}
                       id={content._id as string}
+                      onDelete={refresh}
                     />
                   ))}
                 </div>

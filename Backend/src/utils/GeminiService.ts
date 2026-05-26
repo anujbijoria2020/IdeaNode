@@ -47,7 +47,7 @@ export const generateEmbedding = async (text:string) => {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 export const generateAnswer = async (question: string, context: string) => {
   try {
-    console.log("context is",context);
+    console.log("context is", context);
     console.log("🤖 Generating answer with Gemini...");
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -80,6 +80,13 @@ Answer:
     return text.trim();
   } catch (err: any) {
     console.error("❌ Gemini generation failed:", err.message);
+    console.error("Full error:", JSON.stringify(err, null, 2));
+    if (err.response) {
+      console.error("Gemini API Response:", err.response.data);
+    }
+    if (err.cause) {
+      console.error("Error cause:", err.cause);
+    }
     return "I couldn't generate an answer right now. Please try again later.";
   }
 };

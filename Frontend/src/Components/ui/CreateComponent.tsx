@@ -52,6 +52,7 @@ export const CreateContent = ({ open, onClose }: any) => {
 
       const response = await axios.post(`${BackendUrl}/api/v1/content`, formData, {
         headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
           "token": localStorage.getItem("token") || "",
           "Content-Type": "multipart/form-data"
         },
@@ -106,12 +107,19 @@ toast.error("something went wrong");
 
       default:
         return (
-          <div className="relative">
-            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <div className="pl-10">
-              <Input placeholder="Paste the link here..." ref={linkRef} type="text" />
+          <>
+            <div className="relative">
+              <LinkIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <div className="pl-10">
+                <Input placeholder="Paste the link here..." ref={linkRef} type="text" />
+              </div>
             </div>
-          </div>
+            {type === ContentType.Youtube && (
+              <p className="text-xs text-gray-500 mt-1">
+                Only videos with transcripts can be added.
+              </p>
+            )}
+          </>
         );
     }
   };
