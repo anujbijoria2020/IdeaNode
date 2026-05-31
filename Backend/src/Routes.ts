@@ -92,11 +92,16 @@ route.post(
         let extractedTitle = "";
 
         // 1. Fetch metadata (Title & Description) as fallback or context
+        let metaTitle = '';
+        let metaDescription = '';
         try {
           const metadata = await extractYouTubeMetadata(link);
           if (metadata) {
             extractedTitle = metadata.title;
-            ytText = `Title: ${metadata.title}\nDescription: ${metadata.description}`;
+            metaTitle = metadata.title;
+            metaDescription = metadata.description;
+            // Fallback ytText with metadata if transcript not yet set
+            ytText = `Title: ${metaTitle}\nDescription: ${metaDescription}`;
           }
         } catch (err: any) {
           console.warn("⚠️ YouTube metadata extraction failed:", err.message);
@@ -106,18 +111,19 @@ route.post(
         try {
           const transcript = await extractYouTubeTranscriptWithRetry(link);
           if (transcript) {
-            if (ytText) {
-              ytText += `\nTranscript: ${transcript}`;
+            // Combine metadata (if any) with transcript
+            if (metaTitle || metaDescription) {
+              ytText = `Title: ${metaTitle}\nDescription: ${metaDescription}\nTranscript: ${transcript}`;
             } else {
               ytText = transcript;
             }
           }
         } catch (err: any) {
-          console.warn("⚠️ YouTube transcript extraction failed:", err.message);
+          console.warn('⚠️ YouTube transcript extraction failed:', err.message);
         }
 
-        // 3. Reject if no transcript found
-        if (!ytText.includes("Transcript:")) {
+        // 3. Reject if no transcript found (or no content)
+        if (!ytText) {
           return res.status(400).json({
             message: "Could not extract transcript from YouTube video. Please try another video.",
             success: false,

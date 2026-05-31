@@ -25,7 +25,9 @@ mongoose
 
 //middlewares
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "*",
+}));
 // in server startup file
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
